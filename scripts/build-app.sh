@@ -31,8 +31,20 @@ for size in 16 32 128 256 512; do
     sips -z "$double" "$double" "$PROJECT_DIR/.build/AppIcon.png" --out "$ICON_DIR/icon_${size}x${size}@2x.png" >/dev/null
 done
 iconutil -c icns "$ICON_DIR" -o "$APP_DIR/Contents/Resources/AppIcon.icns"
-codesign --force --sign - "$APP_DIR/Contents/MacOS/libusb-1.0.0.dylib"
-codesign --force --sign - "$HELPER"
-codesign --force --sign - --identifier com.fan.macdou "$APP_DIR"
+SIGN_IDENTITY="${MACDOU_SIGN_IDENTITY:--}"
+SIGN_KEYCHAIN_ARGS=()
+LOCAL_SIGN_DIR="$HOME/Library/Application Support/MacDou/Signing"
+if [[ -z "${MACDOU_SIGN_IDENTITY+x}" && -f "$LOCAL_SIGN_DIR/password" && -f "$LOCAL_SIGN_DIR/local-signing.keychain-db" ]]; then
+    SIGN_IDENTITY="MacDou Local Signing"
+    SIGN_KEYCHAIN_ARGS=(--keychain "$LOCAL_SIGN_DIR/local-signing.keychain-db")
+    IFS= read -r sign_password < "$LOCAL_SIGN_DIR/password"
+    security unlock-keychain -p "$sign_password" "$LOCAL_SIGN_DIR/local-signing.keychain-db"
+    unset sign_password
+elif [[ -n "${MACDOU_SIGN_KEYCHAIN:-}" ]]; then
+    SIGN_KEYCHAIN_ARGS=(--keychain "$MACDOU_SIGN_KEYCHAIN")
+fi
+codesign --force --sign "$SIGN_IDENTITY" "${SIGN_KEYCHAIN_ARGS[@]}" "$APP_DIR/Contents/MacOS/libusb-1.0.0.dylib"
+codesign --force --sign "$SIGN_IDENTITY" "${SIGN_KEYCHAIN_ARGS[@]}" "$HELPER"
+codesign --force --sign "$SIGN_IDENTITY" "${SIGN_KEYCHAIN_ARGS[@]}" --identifier com.fan.macdou "$APP_DIR"
 codesign --verify --deep --strict "$APP_DIR"
 printf 'App ready: %s\n' "$APP_DIR"

@@ -70,7 +70,7 @@ dist/MacDou.app/Contents/MacOS/MacDou --render-preview /tmp/macdou-wifi-page.png
 
 4G 离线回归使用模拟 AT 事务、人工构造短信和网卡计数器，不读取真实短信或切换 USB 模式。`--render-preview` 用示例数据渲染实际界面。`--diagnose` 只输出本机系统传感器的汇总，`--diagnose-cellular` 通过本机 helper 读取模块状态并仅输出脱敏后的布尔状态与信号格。实际短信读取、USB 模式切换及睡眠唤醒恢复需单独验证。
 
-本机构建为临时签名；对外分发需 Developer ID 签名和公证。`mac-status-ring-concept.svg` 为设计稿，应用的菜单栏图形由 `RingRenderer` 绘制。
+首次在本机安装时运行 `bash scripts/setup-local-signing.sh`，之后 `build-app.sh` 会使用同一张仅保存在本机的签名证书，使 macOS 在更新应用后继续识别已有的定位授权。未设置本地证书时仍使用临时签名，每次更新都可能重新申请授权。本地证书不适合公开分发；对外分发需 Developer ID 签名和公证。也可通过 `MACDOU_SIGN_IDENTITY` 指定自己的签名身份。`mac-status-ring-concept.svg` 为设计稿，应用的菜单栏图形由 `RingRenderer` 绘制。
 
 ## 许可证
 
