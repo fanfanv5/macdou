@@ -1,0 +1,16 @@
+.build/
+dist/
+.DS_Store
+.swiftpm/
+.codegraph/
+.cursor/
+/*.png
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.mobileprovision
+.swiftpm/
+.codegraph/

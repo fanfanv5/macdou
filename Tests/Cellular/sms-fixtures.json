@@ -1,0 +1,113 @@
+[
+  {
+    "name": "Chinese Unicode",
+    "pdu": "000405810100F6000862909101325423184F60597DFF0C9A8C8BC17801003100320033003400350036",
+    "text": "你好，验证码123456",
+    "sender": "10006"
+  },
+  {
+    "name": "GSM 7 bit",
+    "pdu": "000405810100F60000629091013254230CC8329BFD065DDF72363904",
+    "text": "Hello World!",
+    "sender": "10006"
+  },
+  {
+    "name": "Alphanumeric sender",
+    "pdu": "000407D0D4F29C0E00006290910132542305D272989C07",
+    "text": "Ready",
+    "sender": "Test"
+  },
+  {
+    "name": "Chinese part 1",
+    "pdu": "004405810100F60008629091013254230E0500032A02017B2C4E0090E85206",
+    "text": "第一部分",
+    "sender": "10006",
+    "reference": 42,
+    "part": 1,
+    "total": 2
+  },
+  {
+    "name": "Chinese part 2",
+    "pdu": "004405810100F60008629091013254230E0500032A02027B2C4E8C90E85206",
+    "text": "第二部分",
+    "sender": "10006",
+    "reference": 42,
+    "part": 2,
+    "total": 2
+  },
+  {
+    "name": "GSM header padding",
+    "pdu": "004405810100F60000629091013254230C0500032B0201E061393D06",
+    "text": "part1",
+    "sender": "10006",
+    "reference": 43,
+    "part": 1,
+    "total": 2
+  },
+  {
+    "name": "16 bit reference",
+    "pdu": "004405810100F60008629091013254230F060804012C0302006C006F006E0067",
+    "text": "long",
+    "sender": "10006",
+    "reference": 65836,
+    "part": 2,
+    "total": 3
+  },
+  {
+    "name": "Negative timezone",
+    "pdu": "000405810100F600086290910132542A080057006500730074",
+    "text": "West",
+    "sender": "10006"
+  },
+  {
+    "name": "Emoji UTF16 pair",
+    "pdu": "000405810100F6000862909101325423086D4B8BD5D83DDE00",
+    "text": "测试😀",
+    "sender": "10006"
+  },
+  {
+    "name": "Non hex",
+    "pdu": "ZZ",
+    "invalid": true
+  },
+  {
+    "name": "Odd hex",
+    "pdu": "000",
+    "invalid": true
+  },
+  {
+    "name": "Short data",
+    "pdu": "000405810100F60008629091013254230A00480065006C006C",
+    "invalid": true
+  },
+  {
+    "name": "Invalid UDH",
+    "pdu": "004405810100F60008629091013254230C0F00032A0201004200610064",
+    "invalid": true
+  },
+  {
+    "name": "Invalid sequence",
+    "pdu": "004405810100F60008629091013254230C0500032A0200004200610064",
+    "invalid": true
+  },
+  {
+    "name": "Binary data",
+    "pdu": "000405810100F60004629091013254230C00420069006E006100720079",
+    "invalid": true
+  },
+  {
+    "name": "Compressed",
+    "pdu": "000405810100F600206290910132542306007A00690070",
+    "invalid": true
+  },
+  {
+    "name": "National table unsupported",
+    "pdu": "004405810100F6000062909101325423070324010140A601",
+    "invalid": true
+  },
+  {
+    "name": "Zero SMSC only",
+    "pdu": "00",
+    "invalid": true
+  }
+]
