@@ -173,7 +173,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         if let event = NSApp.currentEvent, event.type == .rightMouseUp, let button = statusItem?.button {
             popover.performClose(nil)
             let menu = NSMenu()
-            let title = NSMenuItem(title: "四点显示", action: nil, keyEquivalent: "")
+            let title = NSMenuItem(title: "底部状态", action: nil, keyEquivalent: "")
             title.isEnabled = false
             menu.addItem(title)
             for source in DotSource.allCases {

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="460" viewBox="0 0 900 460" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision" role="img" aria-labelledby="title desc">
   <title id="title">Mac 菜单栏状态环设计示意</title>
-  <desc id="desc">参考 iPhone Duo 的开口电量弧、居中 Wi-Fi 和底部四点结构。电量弧始终保留浅色轨道，深色弧线表示当前电量。Mac 版将底部四点映射为音量档位。</desc>
+  <desc id="desc">参考 iPhone Duo 的开口电量弧、居中 Wi-Fi 和底部状态结构。电量弧始终保留浅色轨道，深色弧线表示当前电量。Mac 版将底部状态映射为音量档位。</desc>
   <defs>
     <style>
       text { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif; }
@@ -36,7 +36,7 @@
 
   <rect width="900" height="460" rx="18" fill="#f5f7fa"/>
   <text x="38" y="51" class="heading">Mac 状态环 · 菜单栏方案</text>
-  <text x="38" y="74" class="sub">电量弧保留浅色轨道；Mac 版底部四点表示音量档位</text>
+  <text x="38" y="74" class="sub">电量弧保留浅色轨道；Mac 版底部状态表示音量档位</text>
 
   <rect x="38" y="99" width="824" height="46" rx="13" fill="#ffffff" stroke="#dfe5ec"/>
   <text x="57" y="128" fill="#313a45" font-size="14" font-weight="600">Finder</text>
@@ -59,7 +59,7 @@
     </g>
     <text x="23" y="165" class="label">正常 · 72%</text>
     <text x="23" y="189" class="detail">浅色轨道常驻；深色弧为电量</text>
-    <text x="23" y="210" class="detail">下方四点：音量档位（Mac）</text>
+    <text x="23" y="210" class="detail">底部状态：音量档位（Mac）</text>
   </g>
 
   <g transform="translate(320 173)">
@@ -72,7 +72,7 @@
     </g>
     <text x="23" y="165" class="label">低电量 · 15%</text>
     <text x="23" y="189" class="detail">浅色轨道不随电量消失</text>
-    <text x="23" y="210" class="detail">Wi‑Fi 与四点位置固定</text>
+    <text x="23" y="210" class="detail">Wi‑Fi 与底部状态位置固定</text>
   </g>
 
   <g transform="translate(602 173)">

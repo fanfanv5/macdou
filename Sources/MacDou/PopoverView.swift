@@ -76,8 +76,8 @@ struct PopoverView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(headerTitle)
                     .font(.system(size: 16, weight: .semibold))
-                if showsSettings || showsCellular {
-                    Text(showsSettings ? "让四点显示你关心的状态" : "蜂窝模块与网络状态")
+                if showsCellular {
+                    Text("蜂窝模块与网络状态")
                         .font(.system(size: 11)).foregroundStyle(.secondary)
                 }
             }
@@ -165,8 +165,8 @@ struct PopoverView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "circle.grid.2x2")
                         .frame(width: 22).foregroundStyle(.secondary)
-                    Text("四点").font(.system(size: 12, weight: .medium))
-                    Picker("四点显示", selection: $preferences.dotSource) {
+                    Text("底部状态").font(.system(size: 12, weight: .medium))
+                    Picker("底部状态", selection: $preferences.dotSource) {
                         ForEach(DotSource.allCases) { source in Text(source.title).tag(source) }
                     }
                     .labelsHidden().pickerStyle(.menu).fixedSize()
@@ -201,8 +201,8 @@ struct PopoverView: View {
                 }
             }
             VStack(alignment: .leading, spacing: 9) {
-                Text("底部四点").font(.system(size: 12, weight: .semibold))
-                Picker("底部四点", selection: $preferences.dotSource) {
+                Text("底部状态").font(.system(size: 12, weight: .semibold))
+                Picker("底部状态", selection: $preferences.dotSource) {
                     ForEach(DotSource.allCases) { source in
                         Label(source.title, systemImage: source.symbol).tag(source)
                     }

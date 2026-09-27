@@ -11,7 +11,7 @@ enum DotSource: String, CaseIterable, Identifiable, Codable {
         case .cellularSignal: return "4G 信号"
         case .cpuUsage: return "CPU 使用率"
         case .memoryUsage: return "内存占用"
-        case .hidden: return "隐藏四点"
+        case .hidden: return "隐藏底部状态"
         }
     }
     var symbol: String {
@@ -26,12 +26,12 @@ enum DotSource: String, CaseIterable, Identifiable, Codable {
     }
     var explanation: String {
         switch self {
-        case .volume: return "每点约 25% 音量；静音时四点变浅。"
+        case .volume: return "每点约 25% 音量；静音时指示点变浅。"
         case .wifiSignal: return "从弱到强分为四档；点越多，信号越强。"
-        case .cellularSignal: return "四点随模块信号强弱变化，优先读取 RSRP；过期或不可用时四点变浅。"
+        case .cellularSignal: return "指示点随模块信号强弱变化，优先读取 RSRP；过期或不可用时变浅。"
         case .cpuUsage: return "每点约 25% CPU 使用率，每 2 秒更新。"
         case .memoryUsage: return "每点约 25% 内存占用，统计活跃、驻留与压缩内存。"
-        case .hidden: return "收起底部四点，只显示电量与 Wi-Fi。"
+        case .hidden: return "隐藏底部状态，只显示电量与 Wi-Fi。"
         }
     }
 }

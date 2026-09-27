@@ -35,7 +35,7 @@ enum RegressionRunner {
     static func main() async {
         let tests = StatusTests()
         let cases: [(String, () -> Void)] = [
-            ("四点阈值及无效读数", tests.testDotThresholdsAndInvalidReadings),
+            ("底部状态阈值及无效读数", tests.testDotThresholdsAndInvalidReadings),
             ("切换数据源保持电量与 Wi-Fi 独立", tests.testSwitchingDotSourceUsesIndependentSensorWithoutChangingBattery),
             ("静音覆盖硬件音量", tests.testMuteOverridesCachedHardwareVolume),
             ("不支持的输出设备显示未知", tests.testUnsupportedOutputDoesNotBecomeFullVolume),
@@ -47,7 +47,7 @@ enum RegressionRunner {
             ("充电状态与接电状态区分", tests.testChargingGlyphStateFollowsBatteryNotWallPower),
             ("已充满、低电量与低电量模式", tests.testChargedLowBatteryAndLowPowerModeAreDistinct),
             ("供电图标与低电量模式图形已绘制", tests.testPowerGlyphsAndLowPowerLeafAreActuallyDrawn),
-            ("四点显示 4G 原始信号格", tests.testCellularBarsUseOriginalFourLevelSignal)
+            ("底部状态显示 4G 原始信号档位", tests.testCellularBarsUseOriginalFourLevelSignal)
         ]
         for (name, run) in cases { run(); print("PASS \(name)") }
         await tests.testSettingsPersistAndRestoreDefaults()
