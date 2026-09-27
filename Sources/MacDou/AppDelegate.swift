@@ -12,6 +12,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var features: ModuleFeaturesWindow?
     private var subscriptions = Set<AnyCancellable>()
     private var previousMenuContent: UnifiedMenuContent?
+    private var previousButtonTitle: String?
+    private var previousButtonSummary: String?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let arguments = ProcessInfo.processInfo.arguments
@@ -97,6 +99,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         preferences = Preferences()
         monitor = SystemMonitor()
         cellular = GuardModel()
+        monitor.setSamplingMode(source: preferences.dotSource, popoverVisible: false)
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem?.autosaveName = "MacDouStatusRing"
         statusItem?.isVisible = true
@@ -110,12 +113,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         popover.behavior = .transient
         popover.animates = !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         popover.delegate = self
-        popover.contentViewController = makePopoverController()
         monitor.objectWillChange.sink { [weak self] _ in
             DispatchQueue.main.async { self?.updateStatusItem() }
         }.store(in: &subscriptions)
         preferences.objectWillChange.sink { [weak self] _ in
-            DispatchQueue.main.async { self?.updateStatusItem() }
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.monitor.setSamplingMode(source: self.preferences.dotSource, popoverVisible: self.popover.isShown)
+                self.updateStatusItem()
+            }
         }.store(in: &subscriptions)
         cellular.objectWillChange.sink { [weak self] _ in
             DispatchQueue.main.async { self?.updateStatusItem() }
@@ -148,10 +154,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         }
         if let warning = snapshot.battery.warning.title { batteryLabels.append(warning) }
         if snapshot.battery.isLowPowerMode { batteryLabels.append("低电量模式") }
-        button.title = batteryLabels.isEmpty ? "" : " " + batteryLabels.joined(separator: " · ")
+        let title = batteryLabels.isEmpty ? "" : " " + batteryLabels.joined(separator: " · ")
+        if title != previousButtonTitle {
+            button.title = title
+            previousButtonTitle = title
+        }
         let summary = "MacDou：电量 \(snapshot.battery.title)（\(snapshot.battery.detail)），Wi-Fi \(snapshot.wifi.title)，4G \(snapshot.cellular.title)，\(preferences.dotSource.title) \(snapshot.value(for: preferences.dotSource))"
-        button.toolTip = summary
-        button.setAccessibilityLabel(summary)
+        if summary != previousButtonSummary {
+            button.toolTip = summary
+            button.setAccessibilityLabel(summary)
+            previousButtonSummary = summary
+        }
     }
 
     @objc private func statusItemClicked(_ sender: Any?) {
@@ -197,6 +210,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         NSApplication.shared.activate(ignoringOtherApps: true)
         popover.show(relativeTo: target.bounds, of: target, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
+        monitor.setSamplingMode(source: preferences.dotSource, popoverVisible: true)
+        cellular.setPopoverVisible(true)
         Task { await monitor.refresh() }
     }
 
@@ -214,6 +229,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         if features == nil { features = ModuleFeaturesWindow(model: cellular) }
         popover.performClose(nil)
         features?.open(tab: tab)
+    }
+
+    func popoverDidClose(_ notification: Notification) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.popover.isShown else { return }
+            self.popover.contentViewController = nil
+            self.monitor.setSamplingMode(source: self.preferences.dotSource, popoverVisible: false)
+            self.cellular.setPopoverVisible(false)
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {

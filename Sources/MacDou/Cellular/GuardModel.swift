@@ -26,7 +26,11 @@ final class GuardModel: ObservableObject {
         didSet { defaults.set(autoRecovery, forKey: "autoRecovery"); if !autoRecovery { recoveryTask?.cancel() } }
     }
     @Published var showMenuSpeed: Bool {
-        didSet { defaults.set(showMenuSpeed, forKey: "showMenuSpeed") }
+        didSet {
+            defaults.set(showMenuSpeed, forKey: "showMenuSpeed")
+            scheduleTimer()
+            if showMenuSpeed { Task { await tick() } }
+        }
     }
     private let defaults: UserDefaults
     @Published var companionRunning = false
@@ -34,6 +38,8 @@ final class GuardModel: ObservableObject {
     private let sampler = NetworkSampler()
     private let runner = CommandRunner()
     private var timer: Timer?
+    private var timerInterval: TimeInterval?
+    private var popoverVisible = false
     private var observers: [NSObjectProtocol] = []
     private var recoveryTask: Task<Void, Never>?
     private var sleeping = false
@@ -69,9 +75,26 @@ final class GuardModel: ObservableObject {
                 if self.autoRecovery && !self.isReady { self.scheduleRecovery(reason: "解锁后检查") }
             }
         })
-        timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in Task { @MainActor in await self?.tick() } }
+        scheduleTimer()
         refreshLoginState()
         Task { await tick() }
+    }
+    func setPopoverVisible(_ visible: Bool) {
+        guard popoverVisible != visible else { return }
+        popoverVisible = visible
+        scheduleTimer()
+        if visible { Task { await tick() } }
+    }
+    private func scheduleTimer() {
+        guard checksCompanion, !sleeping else { return }
+        let interval: TimeInterval = popoverVisible || showMenuSpeed ? 2 : (modem.present || isReady ? 5 : 10)
+        guard timer == nil || timerInterval != interval else { return }
+        timer?.invalidate()
+        timerInterval = interval
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            Task { @MainActor in await self?.tick() }
+        }
+        timer?.tolerance = interval * 0.2
     }
     var isReady: Bool { network?.linkActive == true && network?.ipv4 != nil && network?.ambiguous != true }
     var isStale: Bool { lastUpdate == nil || Date().timeIntervalSince(lastUpdate!) > 12 }
@@ -98,18 +121,23 @@ final class GuardModel: ObservableObject {
 
     func tick() async {
         guard !sleeping, !sampleBusy else { return }
+        defer { scheduleTimer() }
         sampleBusy = true
         let version = epoch, fresh = await sampler.sample()
         sampleBusy = false
         guard version == epoch, !sleeping else { return }
         let appeared = priorInterface == nil && fresh.interface != nil
         let changed = priorInterface != fresh.interface
-        priorInterface = fresh.interface; network = fresh
+        priorInterface = fresh.interface
+        if network != fresh { network = fresh }
         if changed { internetStatus = "尚未检测外网"; history.removeAll(); lastGatewayGood = false; nextGatewayCheck = .distantPast }
-        history.append(.init(down: fresh.downloadBytesPerSecond, up: fresh.uploadBytesPerSecond))
-        if history.count > 30 { history.removeFirst(history.count - 30) }
+        if fresh.interface != nil {
+            history.append(.init(down: fresh.downloadBytesPerSecond, up: fresh.uploadBytesPerSecond))
+            if history.count > 30 { history.removeFirst(history.count - 30) }
+        }
         if checksCompanion {
-            companionRunning = !NSRunningApplication.runningApplications(withBundleIdentifier: "local.fan.dji4gguard").isEmpty
+            let running = !NSRunningApplication.runningApplications(withBundleIdentifier: "local.fan.dji4gguard").isEmpty
+            if companionRunning != running { companionRunning = running }
         }
         if companionRunning {
             recoveryTask?.cancel(); runner.cancelAll()
@@ -145,6 +173,7 @@ final class GuardModel: ObservableObject {
         if let result = await readModem(), version == epoch {
             let appeared = !modem.present && result.present
             modem = result; lastUpdate = Date()
+            scheduleTimer()
             telemetryError = result.atOK || !result.present ? nil : "模块控制通道暂不可用"
             if appeared && autoRecovery && !isReady && !isRecovering { scheduleRecovery(reason: "模块已检测到") }
         }
@@ -152,6 +181,7 @@ final class GuardModel: ObservableObject {
     func refreshNow() { nextModemPoll = .distantPast; Task { await tick() } }
     private func willSleep() {
         sleeping = true; epoch += 1; recoveryTask?.cancel(); runner.cancelAll()
+        timer?.invalidate(); timer = nil; timerInterval = nil
         history.removeAll(); lastUpdate = nil; recoveryStatus = "已暂停，等待 Mac 唤醒"
         clearMessages(); smsStatus = "已睡眠，短信内容已从界面清空；唤醒后可重新读取。"
         modeInfo = nil
@@ -159,6 +189,7 @@ final class GuardModel: ObservableObject {
     }
     private func didWake() {
         sleeping = false; epoch += 1; nextModemPoll = Date().addingTimeInterval(8)
+        scheduleTimer()
         internetStatus = "唤醒后尚未检测外网"
         let pending = recoveryTask, version = epoch
         Task {

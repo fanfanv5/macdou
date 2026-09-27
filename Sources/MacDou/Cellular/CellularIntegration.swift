@@ -46,8 +46,8 @@ struct UnifiedMenuContent: Equatable {
         self.ring = ring
         self.size = size
         showsSpeed = model.showMenuSpeed
-        upload = Self.rate(model.isReady ? model.network?.uploadBytesPerSecond : nil)
-        download = Self.rate(model.isReady ? model.network?.downloadBytesPerSecond : nil)
+        upload = showsSpeed ? Self.rate(model.isReady ? model.network?.uploadBytesPerSecond : nil) : ""
+        download = showsSpeed ? Self.rate(model.isReady ? model.network?.downloadBytesPerSecond : nil) : ""
     }
 
     static func rate(_ bytes: Double?) -> String {

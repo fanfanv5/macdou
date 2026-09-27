@@ -13,10 +13,14 @@ actor SensorReader {
 
     deinit { mach_port_deallocate(mach_task_self_, host) }
 
-    func read(wifiPathActive: Bool) -> StatusSnapshot {
+    func read(wifiPathActive: Bool, includeVolume: Bool = true,
+              includeCPU: Bool = true, includeMemory: Bool = true) -> StatusSnapshot {
         StatusSnapshot(
             battery: readBattery(), wifi: readWiFi(pathActive: wifiPathActive),
-            volume: readVolume(), cpuUsage: readCPU(), memoryUsage: readMemory(), updatedAt: Date()
+            volume: includeVolume ? readVolume() : VolumeStatus(),
+            cpuUsage: includeCPU ? readCPU() : nil,
+            memoryUsage: includeMemory ? readMemory() : nil,
+            updatedAt: Date()
         )
     }
 
@@ -144,6 +148,8 @@ final class SystemMonitor: ObservableObject {
     private var wifiPathActive = false
     private var sampling = false
     private var isSuspended = false
+    private var dotSource: DotSource = .volume
+    private var popoverVisible = false
     private var observers: [NSObjectProtocol] = []
 
     init(preview: StatusSnapshot? = nil) {
@@ -175,9 +181,24 @@ final class SystemMonitor: ObservableObject {
     func refresh() async {
         guard !sampling, !isSuspended else { return }
         sampling = true
-        let next = await reader.read(wifiPathActive: wifiPathActive)
+        let source = dotSource
+        let pathActive = wifiPathActive
+        let next = await reader.read(wifiPathActive: pathActive,
+                                     includeVolume: source == .volume,
+                                     includeCPU: source == .cpuUsage,
+                                     includeMemory: source == .memoryUsage)
         snapshot = next
         sampling = false
+        if source != dotSource || pathActive != wifiPathActive { await refresh() }
+    }
+
+    func setSamplingMode(source: DotSource, popoverVisible: Bool) {
+        guard source != dotSource || popoverVisible != self.popoverVisible else { return }
+        let needsRefresh = source != dotSource || popoverVisible
+        dotSource = source
+        self.popoverVisible = popoverVisible
+        if !isSuspended { scheduleTimer() }
+        if needsRefresh { Task { await refresh() } }
     }
 
     private func suspend() {
@@ -187,12 +208,20 @@ final class SystemMonitor: ObservableObject {
     }
     private func resume() {
         isSuspended = false
+        scheduleTimer()
+        Task { await refresh() }
+    }
+
+    private func scheduleTimer() {
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
+        let interval: TimeInterval
+        if popoverVisible || dotSource == .cpuUsage { interval = 2 }
+        else if dotSource == .cellularSignal || dotSource == .hidden { interval = 10 }
+        else { interval = 5 }
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             Task { @MainActor in await self?.refresh() }
         }
-        timer?.tolerance = 0.4
-        Task { await refresh() }
+        timer?.tolerance = interval * 0.2
     }
 
     func stop() {

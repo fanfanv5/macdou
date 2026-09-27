@@ -3,7 +3,7 @@ import Foundation
 import SystemConfiguration
 
 /// Interface-level observations. An assigned IP address does not prove Internet access.
-struct NetworkSnapshot: Sendable {
+struct NetworkSnapshot: Sendable, Equatable {
     var interface: String?
     var ipv4: String?
     var router: String?
@@ -61,7 +61,7 @@ struct NetworkTrafficAccumulator {
     }
 }
 
-/// Native, read-only sampler. Call about every two seconds from the UI's timer.
+/// Native, read-only sampler. The app adjusts its sampling interval to visibility and menu settings.
 actor NetworkSampler {
     private let store = SCDynamicStoreCreate(nil, "DJI4GGuard.NetworkSampler" as CFString, nil, nil)
     private var traffic = NetworkTrafficAccumulator()

@@ -66,8 +66,10 @@ struct PopoverView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(showsSettings ? "偏好设置" : navigation.showsCellular ? "4G 随行" : "MacDou")
                     .font(.system(size: 16, weight: .semibold))
-                Text(showsSettings ? "让四点显示你关心的状态" : navigation.showsCellular ? "蜂窝模块与网络状态" : "电量、连接与此刻的状态")
-                    .font(.system(size: 11)).foregroundStyle(.secondary)
+                if showsSettings || navigation.showsCellular {
+                    Text(showsSettings ? "让四点显示你关心的状态" : "蜂窝模块与网络状态")
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                }
             }
             Spacer()
             if !showsSettings && !navigation.showsCellular {
@@ -80,11 +82,11 @@ struct PopoverView: View {
                 .accessibilityLabel("偏好设置")
             }
         }
-        .padding(.horizontal, 20).padding(.vertical, 17)
+        .padding(.horizontal, 20).padding(.vertical, 14)
     }
 
     private var overview: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             HStack(spacing: 18) {
                 RingPreview(snapshot: snapshot, preferences: preferences, size: 74)
                 VStack(alignment: .leading, spacing: 5) {
@@ -110,58 +112,42 @@ struct PopoverView: View {
             .padding(.vertical, 6)
 
             VStack(spacing: 0) {
-                HStack(spacing: 12) {
+                HStack(spacing: 10) {
                     Image(systemName: snapshot.wifi.connection == .connected ? "wifi" : "wifi.slash")
                         .frame(width: 22).foregroundStyle(.secondary)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Wi-Fi").font(.system(size: 12, weight: .medium))
-                        Text(snapshot.wifi.detail).font(.system(size: 10)).foregroundStyle(.secondary)
-                    }
+                    Text("Wi-Fi").font(.system(size: 12, weight: .medium))
                     Spacer(minLength: 4)
                     Text(snapshot.wifi.title).font(.system(size: 11, weight: .medium))
-                }.padding(14)
-                Divider().padding(.horizontal, 14)
+                }.padding(12).help(snapshot.wifi.detail)
+                Divider().padding(.horizontal, 12)
                 Button { navigation.showsCellular = true } label: {
-                    HStack(spacing: 12) {
+                    HStack(spacing: 10) {
                         Image(systemName: "antenna.radiowaves.left.and.right")
                             .frame(width: 22).foregroundStyle(.secondary)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("4G 随行").font(.system(size: 12, weight: .medium))
-                            Text(cellular.headline).font(.system(size: 10)).foregroundStyle(.secondary)
-                        }
+                        Text("4G 随行").font(.system(size: 12, weight: .medium))
                         Spacer()
-                        Text(cellular.cellularStatus.title).font(.system(size: 11, weight: .medium))
+                        Text(cellularOverviewStatus)
+                            .font(.system(size: 11, weight: .medium)).lineLimit(1)
                         Image(systemName: "chevron.right").font(.system(size: 9)).foregroundStyle(.tertiary)
                     }.contentShape(Rectangle())
-                }.buttonStyle(.plain).padding(14)
-                Divider().padding(.horizontal, 14)
-                HStack(spacing: 12) {
-                    Image(systemName: preferences.dotSource.symbol).frame(width: 22).foregroundStyle(.secondary)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(preferences.dotSource.title).font(.system(size: 12, weight: .medium))
-                        Text("底部四点").font(.system(size: 10)).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Text(snapshot.value(for: preferences.dotSource))
-                        .font(.system(size: 16, weight: .semibold, design: .rounded)).monospacedDigit()
-                }.padding(14)
-            }
-            .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 13))
-
-            VStack(alignment: .leading, spacing: 9) {
-                HStack {
-                    Text("四点显示").font(.system(size: 12, weight: .medium))
-                    Spacer()
+                }.buttonStyle(.plain).padding(12).help("打开 4G 页面：\(cellular.headline)")
+                Divider().padding(.horizontal, 12)
+                HStack(spacing: 8) {
+                    Image(systemName: "circle.grid.2x2")
+                        .frame(width: 22).foregroundStyle(.secondary)
+                    Text("四点").font(.system(size: 12, weight: .medium))
                     Picker("四点显示", selection: $preferences.dotSource) {
                         ForEach(DotSource.allCases) { source in Text(source.title).tag(source) }
                     }
                     .labelsHidden().pickerStyle(.menu).fixedSize()
-                }
-                Text(snapshot.hint(for: preferences.dotSource))
-                    .font(.system(size: 11)).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(minHeight: 30, alignment: .topLeading)
+                    Spacer()
+                    if preferences.dotSource != .hidden {
+                        Text(snapshot.value(for: preferences.dotSource))
+                            .font(.system(size: 12, weight: .semibold, design: .rounded)).monospacedDigit()
+                    }
+                }.padding(12)
             }
+            .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 13))
         }
         .padding(20)
     }
@@ -172,6 +158,11 @@ struct PopoverView: View {
         case .pluggedIn: return "powerplug.fill"
         case .none: return "battery.100percent"
         }
+    }
+
+    private var cellularOverviewStatus: String {
+        if cellular.companionRunning || cellular.isRecovering { return cellular.headline }
+        return cellular.isReady ? cellular.cellularStatus.title : cellular.headline
     }
 
     private var settings: some View {
@@ -230,8 +221,6 @@ struct PopoverView: View {
             if showsSettings {
                 Button("恢复图标默认") { preferences.restoreDefaults() }
                     .buttonStyle(.plain).foregroundStyle(.secondary)
-            } else {
-                Text("每 2 秒更新 · 4G 信号约 6 秒更新").foregroundStyle(.tertiary)
             }
             Spacer()
             Button("退出") { NSApplication.shared.terminate(nil) }
