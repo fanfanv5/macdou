@@ -103,17 +103,6 @@ struct CellularView: View {
                     Text("4G 设置").font(.system(size: 12, weight: .semibold))
                     Toggle("睡眠唤醒后自动恢复连接", isOn: $model.autoRecovery)
                     Toggle("菜单栏显示上下行网速", isOn: $model.showMenuSpeed)
-                    Toggle("登录后自动启动 MacDou", isOn: Binding(
-                        get: { model.loginEnabled },
-                        set: { model.setLoginEnabled($0) }
-                    ))
-                    if let error = model.loginError {
-                        Text(error).foregroundStyle(.secondary)
-                    } else if model.loginNeedsApproval {
-                        Text("请在系统登录项中批准 MacDou").foregroundStyle(.secondary)
-                    }
-                    Button("打开登录项设置") { model.openLoginSettings() }
-                        .buttonStyle(.link)
                 }
                 .font(.system(size: 11))
                 .toggleStyle(.checkbox)

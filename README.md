@@ -20,7 +20,7 @@ open /Applications/MacDou.app
 
 要调整图标顺序，按住 **⌘ Command** 拖动 MacDou 图标到菜单栏右侧。macOS 会记住位置；系统时钟和控制中心占用最右侧区域。
 
-安装到 `/Applications` 后，可在“4G 设置”中打开“登录后自动启动 MacDou”。也可运行 `/Applications/MacDou.app/Contents/MacOS/MacDou --enable-login`；若输出 `requiresApproval`，需在“系统设置 → 通用 → 登录项与扩展”中批准。用 `--login-status` 可检查当前状态。
+安装到 `/Applications` 后，可在“偏好设置”中打开“登录后启动”。也可运行 `/Applications/MacDou.app/Contents/MacOS/MacDou --enable-login`；若输出 `requiresApproval`，需在“系统设置 → 通用 → 登录项与扩展”中批准。用 `--login-status` 可检查当前状态。
 
 ## 四点与 4G
 
@@ -28,12 +28,12 @@ open /Applications/MacDou.app
 | --- | --- |
 | 系统音量（默认） | 每点约 25%，静音时全浅 |
 | Wi-Fi 信号 | RSSI 四档，≥ −55、−56～−67、−68～−75、＜ −75 dBm |
-| 4G 信号 | 信号柱与强弱描述，优先 RSRP、缺失时回退 RSSI |
+| 4G 信号 | 信号柱，优先 RSRP、缺失时回退 RSSI |
 | CPU 使用率 | 两次系统 CPU 计数之差，每点约 25% |
 | 内存占用 | 活跃、驻留和压缩内存占物理内存的比例 |
 | 隐藏四点 | 只显示电量与 Wi-Fi |
 
-主页的“4G 模块”卡片进入完整蜂窝页面：信号、运营商、网卡、上下行网速、流量曲线和可展开的模块详情（固件、注册、RSRP/RSSI/RSRQ/SINR、网关和 USB 模式）。页面顶部可打开原生网卡模式与短信窗口，也能刷新；下方可检测外网、尝试恢复连接、导出诊断，以及设置自动恢复、菜单栏网速、登录启动。右上角偏好设置负责图标外观。设置自动保存。
+主页的“4G 模块”卡片进入完整蜂窝页面：信号、运营商、网卡、上下行网速、流量曲线和可展开的模块详情（固件、注册、RSRP/RSSI/RSRQ/SINR、网关和 USB 模式）。页面顶部可打开原生网卡模式与短信窗口，也能刷新；下方可检测外网、尝试恢复连接、导出诊断，以及设置自动恢复、菜单栏网速。右上角偏好设置负责图标外观和登录启动。设置自动保存。
 
 MacDou 使用同一作者的 [4G Companion（原 DJI4GGuard）](https://github.com/fanfanv5/4g-companion) 中的 USB AT 模块、网卡采样、SMS 解码和模式管理代码；模块 helper 由 `Native/modem-helper.c` 构建。构建会将 libusb 动态库及其 LGPL-2.1 许可证封入 App。模块、SIM、运营商和模式兼容性范围详见原项目 README。模式切换需单独勾选和确认。
 

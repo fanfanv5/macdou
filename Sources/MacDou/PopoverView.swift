@@ -157,7 +157,6 @@ struct PopoverView: View {
                                 .font(.system(size: 11, weight: .medium)).lineLimit(1)
                         } else {
                             CellularSignalIndicator(status: cellular.cellularStatus)
-                                .font(.system(size: 11, weight: .medium))
                         }
                         Image(systemName: "chevron.right").font(.system(size: 9)).foregroundStyle(.tertiary)
                     }.contentShape(Rectangle())
@@ -172,7 +171,7 @@ struct PopoverView: View {
                     }
                     .labelsHidden().pickerStyle(.menu).fixedSize()
                     Spacer()
-                    if preferences.dotSource != .hidden {
+                    if preferences.dotSource != .hidden && preferences.dotSource != .cellularSignal {
                         Text(snapshot.value(for: preferences.dotSource))
                             .font(.system(size: 12, weight: .semibold, design: .rounded)).monospacedDigit()
                     }
@@ -241,6 +240,21 @@ struct PopoverView: View {
                 Button("管理系统电池与 Wi-Fi 图标…") { SystemSettings.openMenuBar() }
                     .font(.system(size: 11)).buttonStyle(.plain).foregroundStyle(.secondary)
             }
+            Divider()
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle("登录后启动", isOn: Binding(
+                    get: { cellular.loginEnabled },
+                    set: { cellular.setLoginEnabled($0) }
+                ))
+                .toggleStyle(.checkbox)
+                if let error = cellular.loginError {
+                    Text(error).foregroundStyle(.secondary)
+                } else if cellular.loginNeedsApproval {
+                    Button("在系统登录项中批准…") { cellular.openLoginSettings() }
+                        .buttonStyle(.link)
+                }
+            }
+            .font(.system(size: 11))
         }.padding(20)
     }
 
