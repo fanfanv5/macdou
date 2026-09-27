@@ -18,6 +18,7 @@ private enum WiFiControlError: LocalizedError {
 
 @MainActor
 final class WiFiControl: NSObject, ObservableObject, CLLocationManagerDelegate {
+    @Published private(set) var isAvailable = false
     @Published private(set) var isPoweredOn = false
     @Published private(set) var currentName: String?
     @Published private(set) var networks: [WiFiChoice] = []
@@ -35,20 +36,26 @@ final class WiFiControl: NSObject, ObservableObject, CLLocationManagerDelegate {
         self.preview = preview
         super.init()
         if preview {
+            isAvailable = true
             isPoweredOn = true
             currentName = "示例网络"
+        } else {
+            refresh()
         }
     }
 
     func refresh(scanIfAuthorized: Bool = false) {
         guard !preview else { return }
         guard let interface = CWWiFiClient.shared().interface() else {
+            if isAvailable { isAvailable = false }
             if isPoweredOn { isPoweredOn = false }
             if currentName != nil { currentName = nil }
             if !networks.isEmpty { networks = [] }
             if message != "未检测到 Wi-Fi 硬件" { message = "未检测到 Wi-Fi 硬件" }
             return
         }
+        if !isAvailable { isAvailable = true }
+        if message == "未检测到 Wi-Fi 硬件" { message = nil }
         let poweredOn = interface.powerOn()
         let name = interface.ssid()
         if isPoweredOn != poweredOn { isPoweredOn = poweredOn }
@@ -70,9 +77,9 @@ final class WiFiControl: NSObject, ObservableObject, CLLocationManagerDelegate {
                 try interface.setPower(enabled)
             }
             Task { @MainActor in
-                self.isBusy = false
                 if case .failure(let error) = result { self.message = error.localizedDescription }
                 self.refresh()
+                self.isBusy = false
                 onChange()
             }
         }

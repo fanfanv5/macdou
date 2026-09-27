@@ -51,25 +51,46 @@ struct WiFiPageView: View {
     @ObservedObject var control: WiFiControl
     let refreshSystem: () -> Void
 
+    private var powerBinding: Binding<Bool> {
+        Binding(
+            get: { control.isPoweredOn },
+            set: { control.setPower($0, onChange: refreshSystem) }
+        )
+    }
+
+    private var headline: String {
+        guard control.isAvailable else { return "Wi-Fi 不可用" }
+        guard control.isPoweredOn else { return "Wi-Fi 已关闭" }
+        return control.currentName ?? (snapshot.wifi.connection == .connected ? "已连接 Wi-Fi" : "Wi-Fi 已打开")
+    }
+
+    private var connectionDetail: String {
+        guard control.isAvailable else { return "未检测到 Wi-Fi 硬件" }
+        guard control.isPoweredOn else { return "打开开关即可连接网络" }
+        return snapshot.wifi.connection == .connected ? snapshot.wifi.detail : "尚未连接 Wi-Fi 网络"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Image(systemName: snapshot.wifi.connection == .connected ? "wifi" : "wifi.slash")
+                Image(systemName: control.isPoweredOn ? "wifi" : "wifi.slash")
                     .font(.system(size: 24)).frame(width: 32)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(control.currentName ?? snapshot.wifi.title)
+                    Text(headline)
                         .font(.system(size: 15, weight: .semibold)).lineLimit(1)
-                    Text(snapshot.wifi.detail).font(.system(size: 11)).foregroundStyle(.secondary)
+                    Text(connectionDetail).font(.system(size: 11)).foregroundStyle(.secondary)
                 }
                 Spacer()
             }
             HStack {
                 Text("Wi-Fi").font(.system(size: 12, weight: .medium))
                 Spacer()
-                Button(control.isPoweredOn ? "关闭" : "打开") {
-                    control.setPower(!control.isPoweredOn, onChange: refreshSystem)
-                }
-                .disabled(control.isBusy)
+                Toggle("Wi-Fi", isOn: powerBinding)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                    .disabled(!control.isAvailable || control.isBusy)
+                    .accessibilityLabel("Wi-Fi")
             }
             .padding(12)
             .glassCard()
