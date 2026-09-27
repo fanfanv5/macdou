@@ -14,6 +14,10 @@ open /Applications/MacDou.app
 
 左键点击图标打开状态面板，右键快速选择四点内容。圆环右上角在充电时显示闪电，接电但未充电（包括已充满）时显示插头；左上角的叶片表示低电量模式。剩余电量 ≤20% 时菜单栏文字显示“低电量”，≤10% 或系统发出最终低电量警告时显示“电量危急”。系统提前发出低电量警告时也会显示；低电量模式会另外显示“低电量模式”。面板用文字区分充电中、已充满、接电未充电、低电量和低电量模式。浅色电量底轨始终可见。无内置电池时仅保留底轨。
 
+点击面板中的电量区域，可查看供电、充电和低电量模式状态，并进入 macOS 电池设置调整电源模式。点击 Wi-Fi 行，可在 MacDou 中开关无线网、查看连接与信号、扫描附近网络并切换连接；已保存网络会先尝试直接连接，需要密码时再输入。企业网络的账号、证书和其他高级选项由系统网络设置处理。扫描网络名称时 macOS 会要求定位权限：MacDou 只在进入 Wi-Fi 页且已获授权，或点击“扫描”后读取附近网络，不在后台扫描。密码只用于本次连接，不保存到 MacDou 设置。
+
+电池与 Wi-Fi 详情页提供“菜单栏图标…”入口；如果要让 MacDou 图标代替系统的电池、Wi-Fi 图标，请在 macOS“系统设置 → 菜单栏”中取消显示原图标。macOS 控制中心和系统设置仍可随时使用。
+
 要调整图标顺序，按住 **⌘ Command** 拖动 MacDou 图标到菜单栏右侧。macOS 会记住位置；系统时钟和控制中心占用最右侧区域。
 
 安装到 `/Applications` 后，可在“4G 设置”中打开“登录后自动启动 MacDou”。也可运行 `/Applications/MacDou.app/Contents/MacOS/MacDou --enable-login`；若输出 `requiresApproval`，需在“系统设置 → 通用 → 登录项与扩展”中批准。用 `--login-status` 可检查当前状态。
@@ -60,6 +64,8 @@ swift run MacDou --render-preview /tmp/macdou-low.png --low-battery-preview --lo
 swift run MacDou --render-preview /tmp/macdou-cellular.png --cellular-preview
 swift run MacDou --render-preview /tmp/macdou-cellular-full.png --cellular-preview --full-cellular-preview
 swift run MacDou --render-preview /tmp/macdou-settings.png --settings-preview --dark-preview
+dist/MacDou.app/Contents/MacOS/MacDou --render-preview /tmp/macdou-battery-page.png --battery-page-preview
+dist/MacDou.app/Contents/MacOS/MacDou --render-preview /tmp/macdou-wifi-page.png --wifi-page-preview
 ```
 
 4G 离线回归使用模拟 AT 事务、人工构造短信和网卡计数器，不读取真实短信或切换 USB 模式。`--render-preview` 用示例数据渲染实际界面。`--diagnose` 只输出本机系统传感器的汇总，`--diagnose-cellular` 通过本机 helper 读取模块状态并仅输出脱敏后的布尔状态与信号格。实际短信读取、USB 模式切换及睡眠唤醒恢复需单独验证。

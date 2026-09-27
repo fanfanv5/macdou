@@ -40,7 +40,10 @@ enum PreviewExporter {
         let monitor = SystemMonitor(preview: demo)
         let cellular = GuardModel.preview(defaults: defaults)
         let content = PopoverView(monitor: monitor, preferences: preferences, cellular: cellular,
+                                  wifiControl: WiFiControl(preview: true),
                                   showsSettings: settings, showsCellular: cellularPage,
+                                  showsBattery: batteryModes.contains("--battery-page-preview"),
+                                  showsWiFi: batteryModes.contains("--wifi-page-preview"),
                                   cellularPreviewHeight: fullCellularPreview ? 700 : 500)
             .environment(\.colorScheme, dark ? .dark : .light)
         let hostingView = NSHostingView(rootView: content)

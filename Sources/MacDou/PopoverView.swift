@@ -3,12 +3,11 @@ import SwiftUI
 
 @MainActor
 final class PopoverNavigation: ObservableObject {
-    @Published var showsSettings: Bool
-    @Published var showsCellular = false
+    enum Page { case overview, settings, cellular, battery, wifi }
+    @Published var page: Page
 
-    init(showsSettings: Bool, showsCellular: Bool = false) {
-        self.showsSettings = showsSettings
-        self.showsCellular = showsCellular
+    init(showsSettings: Bool, showsCellular: Bool = false, showsBattery: Bool = false, showsWiFi: Bool = false) {
+        page = showsSettings ? .settings : showsCellular ? .cellular : showsBattery ? .battery : showsWiFi ? .wifi : .overview
     }
 }
 
@@ -16,24 +15,29 @@ struct PopoverView: View {
     @ObservedObject var monitor: SystemMonitor
     @ObservedObject var preferences: Preferences
     @ObservedObject var cellular: GuardModel
+    @ObservedObject var wifiControl: WiFiControl
     @ObservedObject private var navigation: PopoverNavigation
     var openFeatures: (Int) -> Void
     var saveDiagnostics: () -> Void
     var cellularPreviewHeight: CGFloat
-    private var showsSettings: Bool { navigation.showsSettings }
+    private var showsSettings: Bool { navigation.page == .settings }
+    private var showsCellular: Bool { navigation.page == .cellular }
     private var snapshot: StatusSnapshot { cellular.merging(monitor.snapshot) }
 
-    init(monitor: SystemMonitor, preferences: Preferences, cellular: GuardModel, showsSettings: Bool = false,
-         showsCellular: Bool = false,
+    init(monitor: SystemMonitor, preferences: Preferences, cellular: GuardModel, wifiControl: WiFiControl,
+         showsSettings: Bool = false,
+         showsCellular: Bool = false, showsBattery: Bool = false, showsWiFi: Bool = false,
          openFeatures: @escaping (Int) -> Void = { _ in }, saveDiagnostics: @escaping () -> Void = {},
          cellularPreviewHeight: CGFloat = 500) {
         self.monitor = monitor
         self.preferences = preferences
         self.cellular = cellular
+        self.wifiControl = wifiControl
         self.openFeatures = openFeatures
         self.saveDiagnostics = saveDiagnostics
         self.cellularPreviewHeight = cellularPreviewHeight
-        navigation = PopoverNavigation(showsSettings: showsSettings, showsCellular: showsCellular)
+        navigation = PopoverNavigation(showsSettings: showsSettings, showsCellular: showsCellular,
+                                       showsBattery: showsBattery, showsWiFi: showsWiFi)
     }
 
     var body: some View {
@@ -41,22 +45,28 @@ struct PopoverView: View {
             header
             Divider().padding(.horizontal, 20)
             if showsSettings { settings }
-            else if navigation.showsCellular {
+            else if showsCellular {
                 CellularView(model: cellular, openFeatures: openFeatures, saveDiagnostics: saveDiagnostics,
                              height: cellularPreviewHeight)
+            }
+            else if navigation.page == .battery { BatteryPageView(snapshot: snapshot, preferences: preferences) }
+            else if navigation.page == .wifi {
+                WiFiPageView(snapshot: snapshot, control: wifiControl) { Task { await monitor.refresh() } }
+                    .onAppear { wifiControl.refresh(scanIfAuthorized: true) }
+                    .onChange(of: snapshot.updatedAt) { wifiControl.refresh() }
             }
             else { overview }
             Divider().padding(.horizontal, 20)
             footer
         }
-        .frame(width: navigation.showsCellular && !showsSettings ? 380 : 340)
+        .frame(width: showsCellular ? 380 : 340)
         .background(Color(nsColor: .windowBackgroundColor))
     }
 
     private var header: some View {
         HStack(spacing: 8) {
-            if showsSettings || navigation.showsCellular {
-                Button { navigation.showsSettings = false; navigation.showsCellular = false } label: {
+            if navigation.page != .overview {
+                Button { navigation.page = .overview } label: {
                     Image(systemName: "chevron.left").frame(width: 22, height: 24)
                 }
                 .buttonStyle(.plain)
@@ -64,16 +74,16 @@ struct PopoverView: View {
                 .accessibilityLabel("返回状态")
             }
             VStack(alignment: .leading, spacing: 3) {
-                Text(showsSettings ? "偏好设置" : navigation.showsCellular ? "4G 随行" : "MacDou")
+                Text(headerTitle)
                     .font(.system(size: 16, weight: .semibold))
-                if showsSettings || navigation.showsCellular {
+                if showsSettings || showsCellular {
                     Text(showsSettings ? "让四点显示你关心的状态" : "蜂窝模块与网络状态")
                         .font(.system(size: 11)).foregroundStyle(.secondary)
                 }
             }
             Spacer()
-            if !showsSettings && !navigation.showsCellular {
-                Button { navigation.showsSettings = true } label: {
+            if navigation.page == .overview {
+                Button { navigation.page = .settings } label: {
                     Image(systemName: "slider.horizontal.3").font(.system(size: 14))
                         .frame(width: 28, height: 28)
                 }
@@ -85,9 +95,20 @@ struct PopoverView: View {
         .padding(.horizontal, 20).padding(.vertical, 14)
     }
 
+    private var headerTitle: String {
+        switch navigation.page {
+        case .overview: return "MacDou"
+        case .settings: return "偏好设置"
+        case .cellular: return "4G 随行"
+        case .battery: return "电池"
+        case .wifi: return "Wi-Fi"
+        }
+    }
+
     private var overview: some View {
         VStack(spacing: 12) {
-            HStack(spacing: 18) {
+            Button { navigation.page = .battery } label: {
+              HStack(spacing: 18) {
                 RingPreview(snapshot: snapshot, preferences: preferences, size: 74)
                 VStack(alignment: .leading, spacing: 5) {
                     Text(snapshot.battery.title)
@@ -108,19 +129,24 @@ struct PopoverView: View {
                     }
                 }
                 Spacer(minLength: 0)
-            }
-            .padding(.vertical, 6)
+                Image(systemName: "chevron.right").font(.system(size: 9)).foregroundStyle(.tertiary)
+              }
+              .contentShape(Rectangle())
+            }.buttonStyle(.plain).padding(.vertical, 6).help("打开电池详情")
 
             VStack(spacing: 0) {
-                HStack(spacing: 10) {
+                Button { navigation.page = .wifi } label: {
+                  HStack(spacing: 10) {
                     Image(systemName: snapshot.wifi.connection == .connected ? "wifi" : "wifi.slash")
                         .frame(width: 22).foregroundStyle(.secondary)
                     Text("Wi-Fi").font(.system(size: 12, weight: .medium))
                     Spacer(minLength: 4)
                     Text(snapshot.wifi.title).font(.system(size: 11, weight: .medium))
-                }.padding(12).help(snapshot.wifi.detail)
+                    Image(systemName: "chevron.right").font(.system(size: 9)).foregroundStyle(.tertiary)
+                  }.contentShape(Rectangle())
+                }.buttonStyle(.plain).padding(12).help("打开 Wi-Fi 控制：\(snapshot.wifi.detail)")
                 Divider().padding(.horizontal, 12)
-                Button { navigation.showsCellular = true } label: {
+                Button { navigation.page = .cellular } label: {
                     HStack(spacing: 10) {
                         Image(systemName: "antenna.radiowaves.left.and.right")
                             .frame(width: 22).foregroundStyle(.secondary)
@@ -212,6 +238,8 @@ struct PopoverView: View {
                     Text("浅色底轨始终保留，电量归零也可见。")
                         .font(.system(size: 10)).foregroundStyle(.secondary)
                 }
+                Button("管理系统电池与 Wi-Fi 图标…") { SystemSettings.openMenuBar() }
+                    .font(.system(size: 11)).buttonStyle(.plain).foregroundStyle(.secondary)
             }
         }.padding(20)
     }

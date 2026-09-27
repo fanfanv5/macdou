@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var preferences: Preferences!
     private var monitor: SystemMonitor!
     private var cellular: GuardModel!
+    private var wifiControl: WiFiControl!
     private var features: ModuleFeaturesWindow?
     private var subscriptions = Set<AnyCancellable>()
     private var previousMenuContent: UnifiedMenuContent?
@@ -99,6 +100,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         preferences = Preferences()
         monitor = SystemMonitor()
         cellular = GuardModel()
+        wifiControl = WiFiControl()
         monitor.setSamplingMode(source: preferences.dotSource, popoverVisible: false)
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem?.autosaveName = "MacDouStatusRing"
@@ -217,7 +219,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     private func makePopoverController(settings: Bool = false) -> NSHostingController<PopoverView> {
         let controller = NSHostingController(rootView: PopoverView(
-            monitor: monitor, preferences: preferences, cellular: cellular, showsSettings: settings,
+            monitor: monitor, preferences: preferences, cellular: cellular, wifiControl: wifiControl,
+            showsSettings: settings,
             openFeatures: { [weak self] tab in self?.openFeatures(tab: tab) },
             saveDiagnostics: { [weak self] in self?.cellular.saveDiagnostics() }
         ))
