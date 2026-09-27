@@ -4,8 +4,17 @@ import SwiftUI
 struct BatteryPageView: View {
     let snapshot: StatusSnapshot
     @ObservedObject var preferences: Preferences
+    @ObservedObject var lowPowerControl: LowPowerModeControl
+    let refreshSystem: () -> Void
 
     private var battery: BatteryStatus { snapshot.battery }
+
+    private var lowPowerBinding: Binding<Bool> {
+        Binding(get: { battery.isLowPowerMode }, set: { enabled in
+            let onBattery = battery.isPresent && !battery.isPluggedIn
+            lowPowerControl.setEnabled(enabled, onBattery: onBattery, onChange: refreshSystem)
+        })
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -19,8 +28,19 @@ struct BatteryPageView: View {
             }
             VStack(spacing: 10) {
                 statusRow("供电状态", battery.isPresent ? battery.powerState : "无内置电池")
-                statusRow("低电量模式", battery.isLowPowerMode ? "已开启" : "已关闭")
+                HStack {
+                    Text("低电量模式").foregroundStyle(.secondary)
+                    Spacer()
+                    if lowPowerControl.isBusy { ProgressView().controlSize(.small) }
+                    Toggle("低电量模式", isOn: lowPowerBinding)
+                        .labelsHidden().toggleStyle(.switch).controlSize(.small)
+                        .disabled(lowPowerControl.isBusy || !battery.isPresent)
+                }
+                .font(.system(size: 12))
                 if let warning = battery.warning.title { statusRow("电量提醒", warning) }
+                if let errorMessage = lowPowerControl.errorMessage {
+                    Text(errorMessage).font(.system(size: 10)).foregroundStyle(.secondary)
+                }
             }
             .padding(14)
             .glassCard(radius: 13)

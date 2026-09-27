@@ -16,6 +16,7 @@ struct PopoverView: View {
     @ObservedObject var preferences: Preferences
     @ObservedObject var cellular: GuardModel
     @ObservedObject var wifiControl: WiFiControl
+    @ObservedObject private var lowPowerControl: LowPowerModeControl
     @ObservedObject private var navigation: PopoverNavigation
     var openFeatures: (Int) -> Void
     var saveDiagnostics: () -> Void
@@ -33,6 +34,7 @@ struct PopoverView: View {
         self.preferences = preferences
         self.cellular = cellular
         self.wifiControl = wifiControl
+        lowPowerControl = LowPowerModeControl()
         self.openFeatures = openFeatures
         self.saveDiagnostics = saveDiagnostics
         self.cellularPreviewHeight = cellularPreviewHeight
@@ -49,7 +51,11 @@ struct PopoverView: View {
                 CellularView(model: cellular, openFeatures: openFeatures, saveDiagnostics: saveDiagnostics,
                              height: cellularPreviewHeight)
             }
-            else if navigation.page == .battery { BatteryPageView(snapshot: snapshot, preferences: preferences) }
+            else if navigation.page == .battery {
+                BatteryPageView(snapshot: snapshot, preferences: preferences, lowPowerControl: lowPowerControl) {
+                    Task { await monitor.refresh() }
+                }
+            }
             else if navigation.page == .wifi {
                 WiFiPageView(snapshot: snapshot, control: wifiControl) { Task { await monitor.refresh() } }
                     .onAppear { wifiControl.refresh(scanIfAuthorized: true) }
