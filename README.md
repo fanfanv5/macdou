@@ -8,12 +8,15 @@
 
 ```sh
 bash scripts/build-app.sh
-open dist/MacDou.app
+ditto dist/MacDou.app /Applications/MacDou.app
+open /Applications/MacDou.app
 ```
 
 左键点击图标打开状态面板，右键快速选择四点内容。圆环右上角在充电时显示闪电，接电但未充电（包括已充满）时显示插头；左上角的叶片表示低电量模式。剩余电量 ≤20% 时菜单栏文字显示“低电量”，≤10% 或系统发出最终低电量警告时显示“电量危急”。系统提前发出低电量警告时也会显示；低电量模式会另外显示“低电量模式”。面板用文字区分充电中、已充满、接电未充电、低电量和低电量模式。浅色电量底轨始终可见。无内置电池时仅保留底轨。
 
 要调整图标顺序，按住 **⌘ Command** 拖动 MacDou 图标到菜单栏右侧。macOS 会记住位置；系统时钟和控制中心占用最右侧区域。
+
+安装到 `/Applications` 后，可在“4G 设置”中打开“登录后自动启动 MacDou”。也可运行 `/Applications/MacDou.app/Contents/MacOS/MacDou --enable-login`；若输出 `requiresApproval`，需在“系统设置 → 通用 → 登录项与扩展”中批准。用 `--login-status` 可检查当前状态。
 
 ## 四点与 4G
 

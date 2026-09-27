@@ -15,6 +15,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains("--enable-login") || arguments.contains("--login-status") {
+            let model = GuardModel(startMonitoring: false)
+            model.refreshLoginState()
+            if arguments.contains("--enable-login"), !model.loginEnabled, !model.loginNeedsApproval {
+                model.setLoginEnabled(true)
+            }
+            if let error = model.loginError {
+                fputs("\(error)\n", stderr)
+                exit(1)
+            }
+            if model.loginEnabled { print("enabled"); exit(0) }
+            if model.loginNeedsApproval { print("requiresApproval"); exit(2) }
+            print("notRegistered")
+            exit(1)
+        }
         if let index = arguments.firstIndex(of: "--render-preview"), arguments.indices.contains(index + 1) {
             do {
                 try PreviewExporter.export(to: arguments[index + 1], settings: arguments.contains("--settings-preview"),
