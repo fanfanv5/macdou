@@ -90,7 +90,7 @@ final class ModuleFeaturesWindow: NSWindowController, NSWindowDelegate, NSTableV
         window.isReleasedWhenClosed = false
         super.init(window:window); window.delegate = self; window.center()
         let root = FeatureWindowBackground(); window.contentView = root
-        let title = NSTextField(labelWithString: "MacDou · 4G 随行"); title.font = .systemFont(ofSize: 20, weight: .semibold)
+        let title = NSTextField(labelWithString: "MacDou · 4G 模块"); title.font = .systemFont(ofSize: 20, weight: .semibold)
         let heading = NSStackView(views: [appIcon, title]); heading.spacing = 12; heading.alignment = .centerY
         heading.translatesAutoresizingMaskIntoConstraints = false; root.addSubview(heading)
         NSLayoutConstraint.activate([heading.leadingAnchor.constraint(equalTo:root.leadingAnchor,constant:24), heading.topAnchor.constraint(equalTo:root.topAnchor,constant:16)])

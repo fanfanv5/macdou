@@ -99,7 +99,7 @@ struct PopoverView: View {
         switch navigation.page {
         case .overview: return "MacDou"
         case .settings: return "偏好设置"
-        case .cellular: return "4G 随行"
+        case .cellular: return "4G 模块"
         case .battery: return "电池"
         case .wifi: return "Wi-Fi"
         }
@@ -150,13 +150,18 @@ struct PopoverView: View {
                     HStack(spacing: 10) {
                         Image(systemName: "antenna.radiowaves.left.and.right")
                             .frame(width: 22).foregroundStyle(.secondary)
-                        Text("4G 随行").font(.system(size: 12, weight: .medium))
+                        Text("4G 模块").font(.system(size: 12, weight: .medium))
                         Spacer()
-                        Text(cellularOverviewStatus)
-                            .font(.system(size: 11, weight: .medium)).lineLimit(1)
+                        if cellular.companionRunning || cellular.isRecovering || !cellular.cellularStatus.present {
+                            Text(cellular.headline)
+                                .font(.system(size: 11, weight: .medium)).lineLimit(1)
+                        } else {
+                            CellularSignalIndicator(status: cellular.cellularStatus)
+                                .font(.system(size: 11, weight: .medium))
+                        }
                         Image(systemName: "chevron.right").font(.system(size: 9)).foregroundStyle(.tertiary)
                     }.contentShape(Rectangle())
-                }.buttonStyle(.plain).padding(12).help("打开 4G 页面：\(cellular.headline)")
+                }.buttonStyle(.plain).padding(12).help("打开 4G 模块页面：\(cellular.headline)")
                 Divider().padding(.horizontal, 12)
                 HStack(spacing: 8) {
                     Image(systemName: "circle.grid.2x2")
@@ -184,11 +189,6 @@ struct PopoverView: View {
         case .pluggedIn: return "powerplug.fill"
         case .none: return "battery.100percent"
         }
-    }
-
-    private var cellularOverviewStatus: String {
-        if cellular.companionRunning || cellular.isRecovering { return cellular.headline }
-        return cellular.isReady ? cellular.cellularStatus.title : cellular.headline
     }
 
     private var settings: some View {

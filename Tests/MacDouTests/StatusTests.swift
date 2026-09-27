@@ -154,7 +154,15 @@ final class StatusTests {
         var snapshot = StatusSnapshot.preview
         snapshot.cellular = CellularStatus(present: true, bars: 3)
         XCTAssertEqual(RingState(snapshot: snapshot, source: .cellularSignal).activeDots, 3)
-        XCTAssertEqual(snapshot.value(for: .cellularSignal), "3/4 格")
+        XCTAssertEqual(snapshot.value(for: .cellularSignal), "信号良好")
+        snapshot.cellular.bars = 0
+        XCTAssertEqual(snapshot.value(for: .cellularSignal), "无信号")
+        snapshot.cellular.bars = 1
+        XCTAssertEqual(snapshot.value(for: .cellularSignal), "信号弱")
+        snapshot.cellular.bars = 2
+        XCTAssertEqual(snapshot.value(for: .cellularSignal), "信号一般")
+        snapshot.cellular.bars = 4
+        XCTAssertEqual(snapshot.value(for: .cellularSignal), "信号强")
         snapshot.cellular.bars = nil
         XCTAssertNil(RingState(snapshot: snapshot, source: .cellularSignal).activeDots)
         XCTAssertEqual(snapshot.value(for: .cellularSignal), "信号未知")

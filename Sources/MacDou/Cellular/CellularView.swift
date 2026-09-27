@@ -49,7 +49,11 @@ struct CellularView: View {
                 }
                 .padding(14).glassCard()
                 VStack(spacing: 9) {
-                    detail("信号", model.cellularStatus.title)
+                    HStack {
+                        Text("信号").foregroundStyle(.secondary)
+                        Spacer(minLength: 8)
+                        CellularSignalIndicator(status: model.cellularStatus)
+                    }.font(.system(size: 11))
                     detail("RSRP / SINR", model.visibleBars == nil ? "—" : "\(DisplayUnits.metric(model.modem.rsrpDbm, unit: "dBm")) / \(DisplayUnits.metric(model.modem.sinrDb, unit: "dB"))")
                     detail("SIM / 模块", "\(model.modem.simState ?? "—") · \(model.modem.model ?? "—")")
                     detail("网卡 / IP", "\(model.network?.interface ?? "—") · \(model.network?.ipv4 ?? "—")")

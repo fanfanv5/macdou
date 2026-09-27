@@ -28,7 +28,7 @@ enum DotSource: String, CaseIterable, Identifiable, Codable {
         switch self {
         case .volume: return "每点约 25% 音量；静音时四点变浅。"
         case .wifiSignal: return "从弱到强分为四档；点越多，信号越强。"
-        case .cellularSignal: return "显示模块的 0–4 格信号，优先读取 RSRP；过期或不可用时四点变浅。"
+        case .cellularSignal: return "四点随模块信号强弱变化，优先读取 RSRP；过期或不可用时四点变浅。"
         case .cpuUsage: return "每点约 25% CPU 使用率，每 2 秒更新。"
         case .memoryUsage: return "每点约 25% 内存占用，统计活跃、驻留与压缩内存。"
         case .hidden: return "收起底部四点，只显示电量与 Wi-Fi。"
@@ -204,7 +204,14 @@ struct CellularStatus: Equatable {
     var bars: Int?
     var title: String {
         guard present else { return "未连接" }
-        return bars.map { "\($0)/4 格" } ?? "信号未知"
+        guard let bars else { return "信号未知" }
+        switch min(4, max(0, bars)) {
+        case 0: return "无信号"
+        case 1: return "信号弱"
+        case 2: return "信号一般"
+        case 3: return "信号良好"
+        default: return "信号强"
+        }
     }
 }
 

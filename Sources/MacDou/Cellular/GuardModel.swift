@@ -100,7 +100,7 @@ final class GuardModel: ObservableObject {
     var isStale: Bool { lastUpdate == nil || Date().timeIntervalSince(lastUpdate!) > 12 }
     var visibleBars: Int? { !companionRunning && !isStale && telemetryError == nil && modem.present && modem.atOK ? modem.bars : nil }
     var headline: String {
-        if companionRunning { return "4G 随行正在运行" }
+        if companionRunning { return "原 4G 随行正在运行" }
         if isRecovering { return "正在恢复连接" }
         if modem.present && modem.simState != nil && modem.simState != "READY" { return "SIM：\(modem.simState!)" }
         if isReady { return "4G 网卡已就绪" }
@@ -349,7 +349,7 @@ final class GuardModel: ObservableObject {
         let panel = NSSavePanel(); panel.nameFieldStringValue = "4G-诊断.txt"
         guard panel.runModal() == .OK, let url = panel.url else { return }
         let content = """
-        MacDou · 4G 随行 · \(Date())
+        MacDou · 4G 模块 · \(Date())
         模块：\(modem.model ?? "未知") / \(modem.firmware ?? "未知")
         网卡：\(network?.interface ?? "未发现")，IPv4：\(network?.ipv4 ?? "无")
         默认出口：\(network?.defaultInterface ?? "无")
