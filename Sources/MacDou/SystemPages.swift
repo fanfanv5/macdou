@@ -136,6 +136,23 @@ struct WiFiPageView: View {
                 .frame(maxHeight: 220)
                 .glassCard()
             }
+            if control.isPoweredOn {
+                Button { SystemSettings.openWiFi() } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "personalhotspot")
+                            .frame(width: 16)
+                        Text("个人热点")
+                        Spacer()
+                        Image(systemName: "arrow.up.right")
+                            .foregroundStyle(.secondary)
+                    }
+                    .font(.system(size: 12))
+                    .padding(12)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .glassCard()
+            }
             HStack {
                 Button("更多网络设置…") { SystemSettings.openNetwork() }
                 Spacer()
