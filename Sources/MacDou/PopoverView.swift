@@ -60,7 +60,7 @@ struct PopoverView: View {
             footer
         }
         .frame(width: showsCellular ? 380 : 340)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(GlassPanelBackground())
     }
 
     private var header: some View {
@@ -173,7 +173,7 @@ struct PopoverView: View {
                     }
                 }.padding(12)
             }
-            .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 13))
+            .glassCard(radius: 13)
         }
         .padding(20)
     }

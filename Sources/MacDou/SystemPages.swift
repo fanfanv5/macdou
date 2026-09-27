@@ -23,7 +23,7 @@ struct BatteryPageView: View {
                 if let warning = battery.warning.title { statusRow("电量提醒", warning) }
             }
             .padding(14)
-            .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 13))
+            .glassCard(radius: 13)
             HStack {
                 Button("电池与电源模式…") { SystemSettings.openBattery() }
                 Spacer()
@@ -72,7 +72,7 @@ struct WiFiPageView: View {
                 .disabled(control.isBusy)
             }
             .padding(12)
-            .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12))
+            .glassCard()
 
             HStack {
                 Text("附近网络").font(.system(size: 12, weight: .semibold))
@@ -113,7 +113,7 @@ struct WiFiPageView: View {
                     }
                 }
                 .frame(maxHeight: 220)
-                .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12))
+                .glassCard()
             }
             HStack {
                 Button("更多网络设置…") { SystemSettings.openNetwork() }

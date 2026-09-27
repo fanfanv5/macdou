@@ -47,7 +47,7 @@ struct CellularView: View {
                         Text("↑ \(DisplayUnits.bytes(model.network?.sessionSentBytes ?? 0))")
                     }.font(.system(size: 10)).foregroundStyle(.secondary)
                 }
-                .padding(14).background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12))
+                .padding(14).glassCard()
                 VStack(spacing: 9) {
                     detail("信号", model.cellularStatus.title)
                     detail("RSRP / SINR", model.visibleBars == nil ? "—" : "\(DisplayUnits.metric(model.modem.rsrpDbm, unit: "dBm")) / \(DisplayUnits.metric(model.modem.sinrDb, unit: "dB"))")
